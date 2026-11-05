@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Course Builder Case Study</title>
+<meta name="description" content="How Jeremy Clark designed a course-authoring system where educators review and approve every unit.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Open+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Icons+Round&display=block">
+<style>
+/* Smrt English Design System v2 tokens (subset of smrt-tokens.css), plus a dark theme
+   derived from the navy band colours. Layout: one 46rem reading column; a mist panel for
+   the diagram, bordered cards for checks; the role statement is the page's one navy band. */
+:root {
+  --mk-blue: #0097fa;
+  --mk-deep: #236fab;
+  --mk-navy: #1d3548;
+  --mk-ink: #16354a;
+  --mk-accent: #2b6085;
+  --mk-link-on-navy: #7fcbff;
+  --mk-charcoal: #373e45;
+  --mk-muted: #5b6470;
+  --mk-white: #ffffff;
+  --mk-mist: #f5f7fa;
+  --mk-pale: #edf7ff;
+  --mk-border: rgba(22, 53, 74, .16);
+  --mk-divider: rgba(22, 53, 74, .10);
+  --smrt-success: #1e7b45;
+  --smrt-success-bg: #e6f4ea;
+  --smrt-warning: #8a5300;
+  --smrt-warning-bg: #fff3dc;
+  --r-lg: 12px; --r-pill: 999px;
+  --font-serif: 'Merriweather', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Open Sans', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-mono: SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Roles used by the page (light) */
+  --page: var(--mk-white);
+  --panel: var(--mk-mist);
+  --card: var(--mk-white);
+  --heading: var(--mk-ink);
+  --text: var(--mk-charcoal);
+  --muted: var(--mk-muted);
+  --accent: var(--mk-accent);
+  --border: var(--mk-border);
+  --divider: var(--mk-divider);
+  --chip: var(--mk-pale);
+  --dot: var(--mk-deep);
+  --gate: var(--smrt-success);
+  --gate-bg: var(--smrt-success-bg);
+  --check: var(--smrt-warning);
+  --check-bg: var(--smrt-warning-bg);
+  --band: var(--mk-navy);
+  --band-text: #ffffff;
+  --band-link: var(--mk-link-on-navy);
+  --focus: var(--mk-deep);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #10202e; --panel: #16293a; --card: #16293a; --heading: #ffffff;
+    --text: rgba(255, 255, 255, .85); --muted: #a9b8c6; --accent: #7fcbff;
+    --border: rgba(255, 255, 255, .16); --divider: rgba(255, 255, 255, .10); --chip: #1f3b55; --dot: #7fcbff;
+    --gate: #6fd39b; --gate-bg: #143526; --check: #f2c46d; --check-bg: #392c12;
+    --band: #1d3548; --band-text: #ffffff; --band-link: #7fcbff; --focus: #ffffff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #10202e; --panel: #16293a; --card: #16293a; --heading: #ffffff;
+  --text: rgba(255, 255, 255, .85); --muted: #a9b8c6; --accent: #7fcbff;
+  --border: rgba(255, 255, 255, .16); --divider: rgba(255, 255, 255, .10); --chip: #1f3b55; --dot: #7fcbff;
+  --gate: #6fd39b; --gate-bg: #143526; --check: #f2c46d; --check-bg: #392c12;
+  --band: #1d3548; --band-text: #ffffff; --band-link: #7fcbff; --focus: #ffffff;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; background: var(--page); padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; background: var(--page); color: var(--text); font: 400 18px/1.65 var(--font-sans); }
+img { max-width: 100%; }
+.mi { font-family: 'Material Icons Round'; font-weight: normal; font-style: normal; font-size: 18px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; font-feature-settings: 'liga'; flex: none; width: 1em; overflow: hidden; }
+
+.page {
+  max-width: 46rem; margin: 0 auto;
+  padding-block: 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 64px;
+}
+header { display: grid; gap: 16px; }
+.eyebrow { font: 600 14px/1.3 var(--font-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 0; }
+h1 { font: 700 48px/1.15 var(--font-serif); color: var(--heading); margin: 0; text-wrap: balance; }
+.lead { font: 400 20px/1.6 var(--font-sans); margin: 0; max-width: 34em; text-wrap: pretty; }
+.meta { display: flex; flex-wrap: wrap; gap: 12px 32px; margin: 8px 0 0; padding-top: 16px; border-top: 1px solid var(--divider); }
+.meta div { display: grid; gap: 2px; }
+.meta dt { font: 600 12px/1.3 var(--font-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.meta dd { margin: 0; font-size: 15px; color: var(--heading); }
+
+section { display: grid; gap: 20px; min-width: 0; }
+h2 { font: 700 36px/1.2 var(--font-serif); color: var(--heading); margin: 0; text-wrap: balance; }
+h3 { font: 700 22px/1.3 var(--font-serif); color: var(--heading); margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 40em; text-wrap: pretty; }
+ul { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; max-width: 40em; }
+b, strong { font-weight: 600; color: var(--heading); }
+.small { font-size: 15px; line-height: 1.5; color: var(--muted); }
+
+/* Status badge (icon + word) and chip */
+.smrt-status { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; padding: 2px 10px 2px 8px; border-radius: var(--r-pill); font: 600 13px/1.2 var(--font-sans); }
+.smrt-status .mi { font-size: 16px; }
+.smrt-status--success { color: var(--gate); background: var(--gate-bg); }
+.smrt-chip { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border-radius: var(--r-pill); background: var(--chip); color: var(--heading); font: 600 13px/1 var(--font-sans); white-space: nowrap; }
+.smrt-chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--dot); }
+
+/* Diagram panel */
+.smrt-panel { background: var(--panel); border-radius: var(--r-lg); padding: 24px; min-width: 0; }
+.figure { margin: 0; overflow-x: auto; }
+.figure svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; }
+.legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px; margin-top: 16px; }
+.legend .smrt-chip { background: var(--card); border: 1px solid var(--border); }
+.legend .lg-check::before { background: var(--check); }
+.legend .lg-gate::before { background: var(--gate); }
+
+.d-box { fill: var(--card); stroke: var(--border); stroke-width: 1; }
+.d-phase { font: 700 14px var(--font-serif); fill: var(--heading); }
+.d-cmd { font: 500 11px var(--font-mono); fill: var(--accent); }
+.d-line { font: 400 11.5px var(--font-sans); fill: var(--muted); }
+.d-model { font: 600 10.5px var(--font-sans); fill: var(--heading); }
+.d-chip { fill: var(--chip); }
+.d-check { fill: var(--check-bg); }
+.d-checkt { font: 600 10.5px var(--font-sans); fill: var(--check); }
+.d-gate { fill: var(--gate-bg); stroke: var(--gate); stroke-width: 1; }
+.d-gatet { font: 600 11px var(--font-sans); fill: var(--gate); }
+.d-arrow { stroke: var(--muted); stroke-width: 1.4; fill: none; }
+.d-head { fill: var(--muted); }
+.d-num { font: 600 10px var(--font-sans); fill: var(--muted); letter-spacing: .08em; }
+
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.stats div { display: grid; gap: 2px; }
+.stats b { font: 600 40px/1.1 var(--font-sans); letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--heading); }
+.stats span { font-size: 15px; line-height: 1.4; color: var(--muted); }
+
+/* Model table card */
+.table { border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; background: var(--card); }
+.table .row { display: grid; grid-template-columns: 11rem 1fr; gap: 16px; padding: 12px 20px; border-top: 1px solid var(--divider); font-size: 15px; line-height: 1.5; }
+.table .row:first-child { border-top: 0; }
+.table .row.head { font: 600 12px/1.3 var(--font-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--panel); }
+.table .row > :first-child { font-weight: 600; color: var(--heading); }
+.table .row.head > :first-child { color: var(--muted); }
+.table .row > * { min-width: 0; }
+
+/* Gates */
+.gates { list-style: none; padding: 0; margin: 0; display: grid; max-width: none; gap: 0; }
+.gates li { display: grid; grid-template-columns: 11rem 1fr; gap: 16px; align-items: start; padding: 14px 0; border-top: 1px solid var(--divider); font-size: 17px; line-height: 1.6; }
+.gates li:last-child { border-bottom: 1px solid var(--divider); }
+.gates .smrt-status { margin-top: 2px; justify-self: start; }
+.gates li > span:last-child { min-width: 0; }
+
+/* Check cards */
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.smrt-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 24px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.smrt-card h3 { font-size: 20px; }
+.smrt-card ul, .smrt-card p { font-size: 16px; line-height: 1.55; }
+
+/* Failure stories */
+.stories { display: grid; gap: 0; }
+.stories article { display: grid; grid-template-columns: 11rem 1fr; gap: 16px; padding: 20px 0; border-top: 1px solid var(--divider); }
+.stories article:last-child { border-bottom: 1px solid var(--divider); }
+.stories h3 { font-size: 20px; }
+.stories article > div { display: grid; gap: 8px; min-width: 0; font-size: 17px; line-height: 1.6; }
+.fix { display: flex; gap: 8px; }
+.fix .mi { color: var(--accent); font-size: 20px; margin-top: 3px; }
+
+.checklist { list-style: none; padding: 0; }
+.checklist li { display: flex; gap: 10px; }
+.checklist .mi { color: var(--accent); font-size: 22px; margin-top: 2px; }
+
+/* Application-only blocks (PDF) */
+.app-note { display: flex; gap: 12px; align-items: flex-start; background: var(--check-bg); border-radius: var(--r-lg); padding: 16px 20px; font-size: 15px; line-height: 1.5; max-width: none; }
+.app-note .mi { color: var(--check); font-size: 20px; }
+.app-figs { border-color: var(--check); }
+
+/* Navy band */
+.band { background: var(--band); border-radius: var(--r-lg); padding: 32px; display: grid; gap: 12px; }
+.band .eyebrow { color: var(--band-link); }
+.band p:last-child { font: 700 20px/1.55 var(--font-serif); color: var(--band-text); max-width: none; }
+
+footer { display: flex; flex-wrap: wrap; gap: 4px 24px; font-size: 15px; color: var(--muted); }
+a { color: var(--accent); font-weight: 600; text-underline-offset: 3px; transition: color .15s ease; }
+a:hover { color: var(--mk-blue); }
+a:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
+
+@media screen and (max-width: 768px) {
+  body { font-size: 17px; }
+  .page { padding-block: 40px 48px; gap: 48px; }
+  h1 { font-size: 32px; }
+  h2 { font-size: 28px; }
+  .lead { font-size: 18px; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats b { font-size: 32px; }
+  .cards { grid-template-columns: 1fr; }
+  .gates li, .stories article, .table .row { grid-template-columns: 1fr; gap: 6px; }
+  .table .row.head { display: none; }
+  .smrt-panel { padding: 16px 12px; }
+  .band { padding: 24px 20px; }
+}
+
+@media print {
+  /* Chrome won't keep grid items whole across pages, so print uses block flow:
+     margins instead of gaps, and cards as inline-blocks, which never split. */
+  :root { --page: #ffffff; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-size: 10pt; line-height: 1.5; }
+  .page, section, header, .stories, .gates, .stories article > div, .smrt-card { display: block; }
+  .page { padding-block: 0; max-width: none; }
+  .page > * + * { margin-top: 20px; }
+  section > * + *, header > * + *, .smrt-card > * + *, .stories article > div > * + * { margin-top: 8px; }
+  h1 { font-size: 26pt; }
+  h2 { font-size: 17pt; }
+  h3, .smrt-card h3, .stories h3 { font-size: 11.5pt; }
+  .lead { font-size: 12pt; }
+  .meta dd, .gates li, .stories article > div, .smrt-card ul, .smrt-card p, .table .row, .small, .app-note { font-size: 9.5pt; }
+  .stats b { font-size: 20pt; }
+  .stats span { font-size: 8.5pt; }
+  .cards { display: block; font-size: 0; }
+  .cards .smrt-card p { font-size: 9.5pt; }
+  .cards .smrt-card { display: inline-block; vertical-align: top; width: calc(50% - 6px); margin: 0 0 12px; font-size: 10pt; }
+  .cards .smrt-card:nth-child(odd) { margin-right: 12px; }
+  .smrt-card { padding: 14px; }
+  .gates li { padding: 8px 0; }
+  .stories article { display: block; padding: 8px 0; }
+  .stories h3 { margin-bottom: 4px; }
+  .band p:last-child { font-size: 12pt; }
+  .smrt-card, .stories article, .gates li, .figure, .stats, .table, .table .row, .band, .meta, .app-note, .checklist li, ul li { break-inside: avoid; page-break-inside: avoid; }
+  h2, h3, .eyebrow { break-after: avoid; page-break-after: avoid; }
+  .figure svg { max-width: 330px; }
+}
+@page { size: Letter; margin: 0.55in 0.65in; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <p class="eyebrow">Case study · Jeremy Clark</p>
+  <h1>Course Builder</h1>
+  <p class="lead">A course-authoring system I designed and built at Smrt English. It helps a small team draft course material from a brief or a syllabus, with educators deciding what ships.</p>
+  <dl class="meta">
+    <div><dt>Role</dt><dd>Architect and sole engineer</dd></div>
+    <div><dt>Built</dt><dd>2026, on Claude Code</dd></div>
+    <div><dt>Stack</dt><dd>Claude, Gemini, ElevenLabs, PHP, Python, MySQL</dd></div>
+    <div><dt>Platform</dt><dd>~25k active students</dd></div>
+  </dl>
+</header>
+
+<section id="problem">
+  <h2>The problem.</h2>
+  <p>Smrt English runs an integrated English curriculum for universities and language schools. The adult program runs from ENG 110 to ENG 145, mapped to CEFR A1 to C1. Building course material by hand was slow and uneven:</p>
+  <ul>
+    <li>Teachers and authors wrote lessons in documents, and someone re-entered them into the platform.</li>
+    <li>Media was the bottleneck. Images and audio were stock, inconsistent from unit to unit, or missing.</li>
+    <li>Style, level and exercise quality varied with the author.</li>
+    <li>Matching one university's syllabus, grammar scope and CEFR outcomes by its deadline was hard, so a custom course for a single institution was rarely practical.</li>
+  </ul>
+  <p>The goal: help a small team produce lessons, exercises, images, dialogue audio and assessments that hold one house style and one level from the first unit to the last, with educators deciding what ships.</p>
+</section>
+
+<section id="architecture">
+  <h2>How it works.</h2>
+  <p>Work moves through phases. In each phase, specialized agents draft one kind of material, each with a fresh context. Automated checks run on what they produce, and a person reviews and approves it before the next phase starts. Each course keeps a state file, so any step can stop and resume.</p>
+
+  <figure class="figure smrt-panel">
+    <svg viewBox="0 0 440 560" role="img" aria-labelledby="dg-t dg-d">
+      <title id="dg-t">Course Builder phases</title>
+      <desc id="dg-d">Five phases, from planning to course review. In every phase agents draft, automated checks run, and an educator approves before the next phase. Release runs only when a person starts it.</desc>
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="d-head"/></marker>
+      </defs>
+
+      <!-- Phase 1 -->
+      <rect class="d-box" x="10" y="8" width="420" height="86" rx="8"/>
+      <text class="d-phase" x="24" y="32">Plan the course</text>
+      <text class="d-line" x="24" y="50">Units, levels and outcomes mapped to the brief or syllabus.</text>
+      <rect class="d-chip" x="24" y="62" width="96" height="20" rx="10"/><text class="d-model" x="72" y="76" text-anchor="middle">Agents draft</text>
+      <line class="d-arrow" x1="122" y1="72" x2="137" y2="72" marker-end="url(#ah)"/>
+      <rect class="d-check" x="140" y="62" width="124" height="20" rx="10"/><text class="d-checkt" x="202" y="76" text-anchor="middle">Automated checks</text>
+      <line class="d-arrow" x1="266" y1="72" x2="281" y2="72" marker-end="url(#ah)"/>
+      <rect class="d-gate" x="284" y="62" width="132" height="20" rx="10"/><text class="d-gatet" x="350" y="76" text-anchor="middle">Educator approves</text>
+      <line class="d-arrow" x1="220" y1="94" x2="220" y2="105" marker-end="url(#ah)"/>
+
+      <!-- Phase 2 -->
+      <rect class="d-box" x="10" y="108" width="420" height="86" rx="8"/>
+      <text class="d-phase" x="24" y="132">Characters and voices</text>
+      <text class="d-line" x="24" y="150">A recurring cast with one look and one voice each.</text>
+      <rect class="d-chip" x="24" y="162" width="96" height="20" rx="10"/><text class="d-model" x="72" y="176" text-anchor="middle">Agents draft</text>
+      <line class="d-arrow" x1="122" y1="172" x2="137" y2="172" marker-end="url(#ah)"/>
+      <rect class="d-check" x="140" y="162" width="124" height="20" rx="10"/><text class="d-checkt" x="202" y="176" text-anchor="middle">Automated checks</text>
+      <line class="d-arrow" x1="266" y1="172" x2="281" y2="172" marker-end="url(#ah)"/>
+      <rect class="d-gate" x="284" y="162" width="132" height="20" rx="10"/><text class="d-gatet" x="350" y="176" text-anchor="middle">Educator approves</text>
+      <line class="d-arrow" x1="220" y1="194" x2="220" y2="205" marker-end="url(#ah)"/>
+
+      <!-- Phase 3 -->
+      <rect class="d-box" x="10" y="208" width="420" height="86" rx="8"/>
+      <text class="d-phase" x="24" y="232">Draft each unit</text>
+      <text class="d-line" x="24" y="250">Lessons and exercises, one unit at a time.</text>
+      <rect class="d-chip" x="24" y="262" width="96" height="20" rx="10"/><text class="d-model" x="72" y="276" text-anchor="middle">Agents draft</text>
+      <line class="d-arrow" x1="122" y1="272" x2="137" y2="272" marker-end="url(#ah)"/>
+      <rect class="d-check" x="140" y="262" width="124" height="20" rx="10"/><text class="d-checkt" x="202" y="276" text-anchor="middle">Automated checks</text>
+      <line class="d-arrow" x1="266" y1="272" x2="281" y2="272" marker-end="url(#ah)"/>
+      <rect class="d-gate" x="284" y="262" width="132" height="20" rx="10"/><text class="d-gatet" x="350" y="276" text-anchor="middle">Educator approves</text>
+      <line class="d-arrow" x1="220" y1="294" x2="220" y2="305" marker-end="url(#ah)"/>
+
+      <!-- Phase 4 -->
+      <rect class="d-box" x="10" y="308" width="420" height="86" rx="8"/>
+      <text class="d-phase" x="24" y="332">Images and audio</text>
+      <text class="d-line" x="24" y="350">Scene art and dialogue for each lesson.</text>
+      <rect class="d-chip" x="24" y="362" width="96" height="20" rx="10"/><text class="d-model" x="72" y="376" text-anchor="middle">Agents draft</text>
+      <line class="d-arrow" x1="122" y1="372" x2="137" y2="372" marker-end="url(#ah)"/>
+      <rect class="d-check" x="140" y="362" width="124" height="20" rx="10"/><text class="d-checkt" x="202" y="376" text-anchor="middle">Automated checks</text>
+      <line class="d-arrow" x1="266" y1="372" x2="281" y2="372" marker-end="url(#ah)"/>
+      <rect class="d-gate" x="284" y="362" width="132" height="20" rx="10"/><text class="d-gatet" x="350" y="376" text-anchor="middle">Educator approves</text>
+      <line class="d-arrow" x1="220" y1="394" x2="220" y2="405" marker-end="url(#ah)"/>
+
+      <!-- Phase 5 -->
+      <rect class="d-box" x="10" y="408" width="420" height="86" rx="8"/>
+      <text class="d-phase" x="24" y="432">Course review</text>
+      <text class="d-line" x="24" y="450">Educators review the whole course in one place.</text>
+      <rect class="d-chip" x="24" y="462" width="96" height="20" rx="10"/><text class="d-model" x="72" y="476" text-anchor="middle">Agents review</text>
+      <line class="d-arrow" x1="122" y1="472" x2="137" y2="472" marker-end="url(#ah)"/>
+      <rect class="d-check" x="140" y="462" width="124" height="20" rx="10"/><text class="d-checkt" x="202" y="476" text-anchor="middle">Automated checks</text>
+      <line class="d-arrow" x1="266" y1="472" x2="281" y2="472" marker-end="url(#ah)"/>
+      <rect class="d-gate" x="284" y="462" width="132" height="20" rx="10"/><text class="d-gatet" x="350" y="476" text-anchor="middle">Educator approves</text>
+      <line class="d-arrow" x1="220" y1="494" x2="220" y2="505" marker-end="url(#ah)"/>
+
+      <!-- Release -->
+      <rect class="d-gate" x="10" y="508" width="420" height="44" rx="8"/>
+      <text class="d-phase" x="24" y="535">Release</text>
+      <text class="d-gatet" x="416" y="535" text-anchor="end">Runs only when a person starts it</text>
+    </svg>
+  </figure>
+
+  <p>Claude does the writing and review, Gemini the images and research, and ElevenLabs the voices. House style guides hold the pedagogy every agent follows: lesson structure, exercise formats, variety rules and language-quality rules.</p>
+</section>
+
+<section id="gates">
+  <h2>Where a person decides.</h2>
+  <p>The system stops and waits at each of these points. Nothing reaches students without passing all of them.</p>
+  <ul class="gates">
+    <li><span class="smrt-status smrt-status--success"><span class="mi" aria-hidden="true">task_alt</span>Course plan</span><span>Educators approve the units, levels and syllabus coverage before anything else is drafted.</span></li>
+    <li><span class="smrt-status smrt-status--success"><span class="mi" aria-hidden="true">task_alt</span>Characters</span><span>The cast, their looks and their voices are approved once and reused across the course.</span></li>
+    <li><span class="smrt-status smrt-status--success"><span class="mi" aria-hidden="true">task_alt</span>Materials</span><span>Educators choose the readings and videos each unit uses.</span></li>
+    <li><span class="smrt-status smrt-status--success"><span class="mi" aria-hidden="true">task_alt</span>Flagged work</span><span>When a reviewer agent isn't sure about something, the build stops and asks a person.</span></li>
+    <li><span class="smrt-status smrt-status--success"><span class="mi" aria-hidden="true">task_alt</span>Spend</span><span>Extra generation cost needs a person's OK.</span></li>
+    <li><span class="smrt-status smrt-status--success"><span class="mi" aria-hidden="true">task_alt</span>Every unit</span><span>Educators review and approve every unit. Every note they leave gets a recorded decision.</span></li>
+    <li><span class="smrt-status smrt-status--success"><span class="mi" aria-hidden="true">task_alt</span>Release</span><span>Nothing goes live until a person runs the release step. The agents can't run it.</span></li>
+  </ul>
+</section>
+
+<section id="testing">
+  <h2>How it's tested.</h2>
+  <div class="cards">
+    <div class="smrt-card">
+      <h3>Separate reviewers</h3>
+      <p>Work is checked by reviewer agents that don't share the writer's context, so they don't inherit its blind spots.</p>
+    </div>
+    <div class="smrt-card">
+      <h3>Scripts that stop the build</h3>
+      <p>Structural problems, such as a broken exercise, missing media or an inconsistent character, stop the build. They don't just log a warning.</p>
+    </div>
+    <div class="smrt-card">
+      <h3>Models chosen by blind test</h3>
+      <p>Before switching models for a job, I compare the candidates on blind samples. The default or the newest isn't automatically the best.</p>
+    </div>
+    <div class="smrt-card">
+      <h3>Alarms people trust</h3>
+      <p>A check that raises false alarms teaches people to ignore it, so I tune each check until a failure means something.</p>
+    </div>
+  </div>
+</section>
+
+<section id="broke">
+  <h2>What broke.</h2>
+  <div class="stories">
+    <article>
+      <h3>Consistency across a course</h3>
+      <div><p>Characters, art and voices drifted from unit to unit, and new courses started to resemble old ones. Consistency had to be designed in at the start; checking for it at the end was too late.</p></div>
+    </article>
+    <article>
+      <h3>Drift from house style</h3>
+      <div><p>Over long runs, the output got repetitive and slid away from house style. Shorter runs with fresh context, and reviewers that read a whole unit at once, fixed most of it.</p></div>
+    </article>
+    <article>
+      <h3>Gates that leave no record</h3>
+      <div><p>A QA step once skipped silently when a build resumed, and nothing showed it hadn't run. A check that passes and a check that never ran should look different.</p></div>
+    </article>
+    <article>
+      <h3>Automatic fixes</h3>
+      <div><p>An automatic repair loop for images made builds slower without making them better. Now checks report problems and a person decides what to redo.</p></div>
+    </article>
+  </div>
+</section>
+
+<section id="differently">
+  <h2>What I'd do differently.</h2>
+  <ul>
+    <li><b>Evals first.</b> I added most checks after something failed. I'd start with a scored test set built from educators' edits on day one.</li>
+    <li><b>Consistency first.</b> I designed characters and voices after content was already being written. Designing them first is cheaper.</li>
+  </ul>
+  <p class="small">Both are how the system works now.</p>
+</section>
+
+<section class="band" id="role">
+  <p class="eyebrow">My role</p>
+  <p>I designed and built all of it: the architecture, agents, style guides, checks and release path. A junior developer runs builds and does first-pass QC. Educators review and approve every unit.</p>
+</section>
+
+<footer>
+  <span>Jeremy Clark · Co-founder and CTO, Smrt English · Vancouver</span>
+  <a href="https://www.linkedin.com/in/jer-clark">linkedin.com/in/jer-clark</a>
+</footer>
+</div>
+</body>
+</html>
